@@ -33,8 +33,8 @@ services:
       - "8317"
     environment:
       <<: *cliproxy-env
-      # Coolify seeds the editable project variable from the generated service name.
-      COMPOSE_PROFILES: $SERVICE_NAME_CLIPROXY
+      # Give Coolify an editable profile variable with a direct-mode default.
+      COMPOSE_PROFILES: ${COMPOSE_PROFILES:-direct}
       CLIPROXY_ACTIVE_PROFILE: ${COMPOSE_PROFILES:-direct}
       CLIPROXY_DIRECT_PROFILE: ${SERVICE_NAME_CLIPROXY:-cliproxy}
       CLIPROXY_PROFILE: direct
