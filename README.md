@@ -33,6 +33,10 @@ Open `/management.html` on your HTTPS domain and sign in with the generated mana
 
 The generated client key or `CLIPROXY_API_KEY` seeds an empty volume. After initialization, the service uses the client keys saved in the panel and the seed can be removed from the deployment environment. Check `/healthz` for service status and send `Authorization: Bearer <client-key>` to `/v1/models` to verify client access.
 
+## Optional outbound proxy
+
+Use a proxy address reachable from the `cliproxy` container, such as `http://proxy.example.net:3128` or `socks5://proxy.example.net:1080`. Under **OAuth**, open **Login proxy** and enter the address before connecting an account. For an existing OAuth account, edit its **Proxy URL** under **Auth Files**. For provider API keys, set **Proxy URL** on the provider entry or key. Leave the global proxy setting empty to limit proxy use to the credentials you configure. [CLIProxyAPI configuration](https://github.com/router-for-me/CLIProxyAPI/blob/main/config.example.yaml)
+
 ## Update
 
 Redeploy the same Coolify application with a rebuild or run `docker compose up --build --wait --remove-orphans` in the same Compose project on Linux to retain `cliproxy-data`. To keep an existing public address, assign it to `cliproxy` on port `8317` and remove any previous route for that address.
