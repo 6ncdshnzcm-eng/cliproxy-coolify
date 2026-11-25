@@ -1,2 +1,0 @@
-ARG GLUETUN_IMAGE=ghcr.io/qdm12/gluetun:latest
-FROM ${GLUETUN_IMAGE}

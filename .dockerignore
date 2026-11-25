@@ -1,4 +1,3 @@
 **
 !Dockerfile
-!Dockerfile.gluetun
 !docker-entrypoint.sh

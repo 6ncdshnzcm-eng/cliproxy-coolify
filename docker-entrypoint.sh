@@ -9,16 +9,7 @@ if [ "${1:-}" = --check-image ]; then
     exit 0
 fi
 
-active_profile=${CLIPROXY_ACTIVE_PROFILE:-direct}
-if [ "$active_profile" = "${CLIPROXY_DIRECT_PROFILE:-cliproxy}" ]; then
-    active_profile=direct
-fi
-if [ -n "${CLIPROXY_PROFILE:-}" ] && [ "$active_profile" != "$CLIPROXY_PROFILE" ]; then
-    printf '%s\n' 'Set COMPOSE_PROFILES to exactly one of direct, bundled, or external.' >&2
-    exit 1
-fi
-
-public_urls=${COOLIFY_URL:-${CLIPROXY_PUBLIC_URL:-}}
+public_urls=${COOLIFY_URL:-}
 case "$public_urls" in
     '')
         if [ -n "${COOLIFY_RESOURCE_UUID:-}" ]; then

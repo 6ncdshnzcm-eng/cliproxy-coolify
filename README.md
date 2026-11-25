@@ -4,17 +4,9 @@ Run Claude Code, Codex, and the account management panel behind one HTTPS endpoi
 
 ## Deploy with Coolify
 
-Coolify deploys `compose.yaml` as a Docker Compose application and selects the direct mode by default. It generates the public addresses and stores the initial client key (`SERVICE_PASSWORD_64_CLIPROXYAPI`) and management key (`SERVICE_PASSWORD_64_CLIPROXYMANAGEMENT`) in **Environment Variables**. An HTTPS wildcard domain on the server lets Coolify provision TLS automatically. The app refuses to start on a public HTTP route. [Coolify generated domains](https://coolify.io/docs/core/networking/domains#use-generated-domains)
+Coolify deploys `compose.yaml` as a Docker Compose application. It generates a public address for `cliproxy` and stores the initial client key (`SERVICE_PASSWORD_64_CLIPROXYAPI`) and management key (`SERVICE_PASSWORD_64_CLIPROXYMANAGEMENT`) in **Environment Variables**. An HTTPS wildcard domain on the server lets Coolify provision TLS automatically. The app refuses to start on a public HTTP route. [Coolify generated domains](https://coolify.io/docs/core/networking/domains#use-generated-domains)
 
-If Coolify has already assigned an HTTP address, replace it in the application's **Domains** with an HTTPS address targeting `cliproxy` on port `8317`, then redeploy. Existing addresses stay assigned when the server wildcard changes. Use the public address once its certificate validates. [Coolify domain configuration](https://coolify.io/docs/core/networking/domains)
-
-## Optional VPN
-
-All modes use `compose.yaml`. Set `COMPOSE_PROFILES` to `direct`, `bundled`, or `external` for both build and runtime, then redeploy the same Coolify application. The application keeps its `cliproxy-data` volume.
-
-- **Direct.** Use the HTTPS address assigned to `cliproxy`.
-- **Bundled Gluetun.** Use the HTTPS address assigned to `gluetun`. Make `/dev/net/tun` available on the host and fill in the VPN fields in [.env.example](.env.example). The defaults use a custom WireGuard profile. [Gluetun providers](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers)
-- **External Gluetun.** Set `GLUETUN_CONTAINER` to the existing Docker container name and allow port `8317` in its `FIREWALL_INPUT_PORTS`. The existing proxy routes HTTPS to Gluetun on that port. Set `CLIPROXY_PUBLIC_URL` to that HTTPS address in Coolify. Redeploy CLIProxyAPI after recreating Gluetun.
+If Coolify has already assigned an HTTP address, change it to HTTPS in the application's **Domains**, keeping the same service and port `8317`, then redeploy. Existing addresses stay assigned when the server wildcard changes. Use the public address once its certificate validates. [Coolify domain configuration](https://coolify.io/docs/core/networking/domains)
 
 ## Run on Linux with Docker Compose
 
@@ -24,15 +16,13 @@ Copy `.env.example` to `.env` and generate the two keys.
 docker compose up --build --wait
 ```
 
-Once startup succeeds, run the health check for the active `COMPOSE_PROFILES` setting.
+Once startup succeeds, check the service.
 
-| Profile | Health check |
-| --- | --- |
-| `direct` | `docker compose exec -T cliproxy curl -fsS http://127.0.0.1:8317/healthz` |
-| `bundled` | `docker compose exec -T cliproxy-bundled curl -fsS http://127.0.0.1:8317/healthz` |
-| `external` | `docker compose exec -T cliproxy-external curl -fsS http://127.0.0.1:8317/healthz` |
+```sh
+docker compose exec -T cliproxy curl -fsS http://127.0.0.1:8317/healthz
+```
 
-For HTTPS, point a reverse proxy at the target service on port `8317`. A proxy running on the host can use the port mapping `127.0.0.1:8317:8317` on the target service. To switch network modes locally, run `docker compose down` with the current profile before changing `COMPOSE_PROFILES`.
+For HTTPS, point a reverse proxy at `cliproxy` on port `8317`. A proxy running on the host can use the port mapping `127.0.0.1:8317:8317` on `cliproxy`.
 
 ## Connect accounts and clients
 
@@ -45,4 +35,6 @@ The generated client key or `CLIPROXY_API_KEY` seeds an empty volume. After init
 
 ## Update
 
-Redeploy with a rebuild in Coolify or rerun `docker compose up --build --wait` on Linux. The build checks `CLIPROXY_IMAGE` for v8 configuration support before an image can replace the service. Use an image that supports the configuration stored on `cliproxy-data` for an image-only rollback. Rolling back to v7 requires the matching deployment and a backup of its configuration.
+Redeploy the same Coolify application with a rebuild or run `docker compose up --build --wait --remove-orphans` in the same Compose project on Linux to retain `cliproxy-data`. To keep an existing public address, assign it to `cliproxy` on port `8317` and remove any previous route for that address.
+
+The build checks `CLIPROXY_IMAGE` for v8 configuration support before an image can replace the service. Use an image that supports the configuration stored on `cliproxy-data` for an image-only rollback. Rolling back to v7 requires the matching deployment and a backup of its configuration.
